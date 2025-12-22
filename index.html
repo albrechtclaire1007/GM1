@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="lb">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kart-Challenge</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:rgba(255,255,255,.08);
+      --panel2:rgba(255,255,255,.12);
+      --txt:#f2f5ff;
+      --muted:rgba(242,245,255,.75);
+      --good:#30e08b;
+      --warn:#ffd166;
+      --bad:#ff5d5d;
+      --accent:#7aa2ff;
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --radius: 18px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 800px at 20% 10%, #1b2a66 0%, transparent 55%),
+                  radial-gradient(900px 700px at 90% 30%, #3a1f5c 0%, transparent 60%),
+                  var(--bg);
+      color:var(--txt);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+
+    .app{
+      width:min(520px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      border:1px solid rgba(255,255,255,.14);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    header{
+      padding:16px 16px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      background: linear-gradient(180deg, rgba(0,0,0,.22), transparent);
+    }
+
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .brand h1{
+      font-size:18px;
+      margin:0;
+      letter-spacing:.3px;
+    }
+    .brand p{
+      margin:0;
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .hud{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .chip{
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:13px;
+      color:var(--muted);
+      display:flex;
+      gap:8px;
+      align-items:center;
+      white-space:nowrap;
+    }
+    .chip strong{color:var(--txt); font-weight:700}
+
+    main{ padding:16px; }
+
+    .card{
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:var(--radius);
+      padding:14px;
+    }
+
+    .row{ display:flex; gap:12px; align-items:center; }
+    .col{ display:flex; flex-direction:column; gap:10px; }
+
+    .avatar{
+      width:86px; height:86px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.25);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      overflow:hidden;
+      flex:0 0 auto;
+      position:relative;
+    }
+
+    /* “Gameify” Look: simpel Filter + Outline + Glow */
+    .avatar img{
+      width:100%; height:100%; object-fit:cover;
+      filter: saturate(1.35) contrast(1.18) brightness(1.05);
+      transform: scale(1.06);
+    }
+    .avatar:after{
+      content:"";
+      position:absolute; inset:0;
+      border-radius:18px;
+      box-shadow: inset 0 0 0 2px rgba(122,162,255,.35),
+                  0 0 0 2px rgba(0,0,0,.35);
+      pointer-events:none;
+    }
+
+    .title{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .sub{
+      margin:0;
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+
+    .light{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:center;
+      padding:12px;
+      border-radius:16px;
+      background:rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.10);
+      user-select:none;
+    }
+    .bulb{
+      width:16px; height:16px;
+      border-radius:999px;
+      background:rgba(255,255,255,.18);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,.15);
+    }
+    .bulb.on.red{background:var(--bad)}
+    .bulb.on.yellow{background:var(--warn)}
+    .bulb.on.green{background:var(--good)}
+
+    .big{
+      margin-top:14px;
+      width:100%;
+      border:0;
+      border-radius:18px;
+      padding:16px 14px;
+      font-size:18px;
+      font-weight:800;
+      color:#07101a;
+      background: linear-gradient(180deg, #8fb0ff, #6f95ff);
+      box-shadow: 0 12px 30px rgba(122,162,255,.35);
+      cursor:pointer;
+      touch-action: manipulation;
+    }
+    .big:active{ transform: translateY(1px); }
+
+    .big.secondary{
+      background:rgba(255,255,255,.10);
+      color:var(--txt);
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow:none;
+      font-weight:700;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .tiny{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:10px;
+    }
+
+    .hidden{ display:none !important; }
+
+    .reveal{
+      text-align:center;
+      padding:18px 14px;
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(48,224,139,.18), rgba(255,255,255,.06));
+      border:1px solid rgba(48,224,139,.35);
+      margin-top:12px;
+    }
+    .reveal h2{ margin:0 0 8px; font-size:18px; }
+    .reveal p{ margin:0; color:var(--muted); line-height:1.35; }
+
+    .voucher{
+      margin-top:10px;
+      padding:12px;
+      border-radius:14px;
+      background:rgba(0,0,0,.20);
+      border:1px dashed rgba(255,255,255,.25);
+      font-weight:800;
+      letter-spacing:.4px;
+    }
+
+    footer{
+      padding:14px 16px 18px;
+      color:rgba(242,245,255,.55);
+      font-size:12px;
+      text-align:center;
+    }
+
+    a{color:#b9ccff}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <h1>Kart-Challenge</h1>
+        <p>Spill bis 50 Punkten → de Kaddo gëtt opgemaach 🎁</p>
+      </div>
+      <div class="hud">
+        <div class="chip">Punkten: <strong id="score">0</strong>/50</div>
+      </div>
+    </header>
+
+    <main>
+      <!-- START / PLAYER PICK -->
+      <section class="card" id="startCard">
+        <div class="row">
+          <div class="avatar"><img id="avatarImg" src="mara.jpg" alt="Avatar"></div>
+          <div class="col">
+            <p class="title" id="headline">Prett?</p>
+            <p class="sub" id="desc">
+              Tippen op <strong>START</strong>. Wa d’Luucht <strong>GRÉNG</strong> gëtt: sou séier wéi méiglech tippen!
+              Fir all gudde Start kriss du Punkten. Zil: <strong>50</strong>.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid">
+          <button class="big secondary" id="pickMara">Ech si Mara</button>
+          <button class="big secondary" id="pickGilles">Ech si Gilles</button>
+        </div>
+
+        <button class="big" id="startBtn">START</button>
+        <div class="tiny">Tipp: Dat leeft um Handy am Browser. QR-Code kann direkt op dës Säit féieren.</div>
+      </section>
+
+      <!-- GAME -->
+      <section class="card hidden" id="gameCard">
+        <div class="row" style="justify-content:space-between; align-items:flex-start;">
+          <div class="row">
+            <div class="avatar"><img id="avatarImg2" src="mara.jpg" alt="Avatar"></div>
+            <div class="col" style="gap:4px;">
+              <p class="title" id="playerName">Mara</p>
+              <p class="sub" id="statusText">Waart op d’Startluucht…</p>
+            </div>
+          </div>
+
+          <button class="chip" id="resetBtn" style="cursor:pointer; user-select:none;">Neistart</button>
+        </div>
+
+        <div class="light" aria-label="Startluucht">
+          <div class="bulb" id="b1"></div>
+          <div class="bulb" id="b2"></div>
+          <div class="bulb" id="b3"></div>
+        </div>
+
+        <button class="big" id="tapBtn">TIPPEN!</button>
+        <div class="tiny" id="hintLine">Wann et nach net gréng ass, waarden 🙂</div>
+
+        <div class="reveal hidden" id="revealBox">
+          <h2>🎉 Bravo!</h2>
+          <p>Du hues <strong>50 Punkten</strong> erreecht — de Kaddo ass elo op!</p>
+          <div class="voucher" id="voucherText">
+            🎁 Karting-Voucher: (hei däi Text / Code / Link asetze)
+          </div>
+          <p class="tiny">Du kanns hei och eng Foto vum Voucher asetzen oder op e PDF verlinken.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Made for Xmas 🏁 (Luxembourgish version)
+    </footer>
+  </div>
+
+<script>
+(() => {
+  // --- Simple settings ---
+  const TARGET = 50;
+
+  // Player assets (same folder)
+  const players = {
+    mara:  { name: "Mara",  img: "mara.jpg"  },
+    gilles:{ name: "Gilles",img: "gilles.jpg"}
+  };
+
+  // DOM
+  const scoreEl = document.getElementById("score");
+  const startCard = document.getElementById("startCard");
+  const gameCard  = document.getElementById("gameCard");
+  const pickMara  = document.getElementById("pickMara");
+  const pickGilles= document.getElementById("pickGilles");
+  const startBtn  = document.getElementById("startBtn");
+  const resetBtn  = document.getElementById("resetBtn");
+
+  const avatarImg  = document.getElementById("avatarImg");
+  const avatarImg2 = document.getElementById("avatarImg2");
+  const playerName = document.getElementById("playerName");
+  const statusText = document.getElementById("statusText");
+  const hintLine   = document.getElementById("hintLine");
+
+  const b1 = document.getElementById("b1");
+  const b2 = document.getElementById("b2");
+  const b3 = document.getElementById("b3");
+
+  const tapBtn = document.getElementById("tapBtn");
+  const revealBox = document.getElementById("revealBox");
+
+  // State
+  let playerKey = getPlayerFromURL() || "mara";
+  let score = 0;
+
+  let phase = "idle"; // idle -> counting -> green -> done
+  let greenAt = 0;
+  let timer = null;
+
+  // Init
+  applyPlayer(playerKey);
+  updateScore(0);
+
+  pickMara.addEventListener("click", () => { playerKey = "mara"; applyPlayer(playerKey); });
+  pickGilles.addEventListener("click", () => { playerKey = "gilles"; applyPlayer(playerKey); });
+
+  startBtn.addEventListener("click", () => {
+    startCard.classList.add("hidden");
+    gameCard.classList.remove("hidden");
+    newRound();
+  });
+
+  resetBtn.addEventListener("click", () => resetGame());
+
+  // Core tap button
+  tapBtn.addEventListener("click", () => handleTap());
+  tapBtn.addEventListener("touchstart", (e) => { /* faster feel on mobile */ }, {passive:true});
+
+  function applyPlayer(key){
+    const p = players[key] || players.mara;
+    avatarImg.src = p.img;
+    avatarImg2.src = p.img;
+    playerName.textContent = p.name;
+    // Keep URL optionally clean for QR
+    // (You can make separate QR codes to .../index.html?player=mara and ...?player=gilles)
+    // Not auto-changing URL to avoid confusion.
+  }
+
+  function resetGame(){
+    clearTimeout(timer);
+    timer = null;
+    score = 0;
+    updateScore(score);
+    revealBox.classList.add("hidden");
+    tapBtn.disabled = false;
+    statusText.textContent = "Waart op d’Startluucht…";
+    hintLine.textContent = "Wann et nach net gréng ass, waarden 🙂";
+    setLights("off");
+    newRound();
+  }
+
+  function updateScore(n){
+    scoreEl.textContent = n;
+  }
+
+  function setLights(state){
+    // state: off / red / yellow / green
+    [b1,b2,b3].forEach(b => b.className = "bulb");
+    if(state === "red"){ b1.classList.add("on","red"); }
+    if(state === "yellow"){ b1.classList.add("on","red"); b2.classList.add("on","yellow"); }
+    if(state === "green"){ b1.classList.add("on","red"); b2.classList.add("on","yellow"); b3.classList.add("on","green"); }
+  }
+
+  function newRound(){
+    if(score >= TARGET){ finish(); return; }
+
+    phase = "counting";
+    tapBtn.disabled = false;
+    statusText.textContent = "Prett? D’Luucht geet gläich un…";
+    hintLine.textContent = "Net ze fréi tippen 🙂";
+
+    // Step 1: red
+    setLights("red");
+
+    // Step 2: yellow after 600ms
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      setLights("yellow");
+
+      // Step 3: green after random delay
+      const delay = 600 + Math.floor(Math.random()*1200); // 0.6s - 1.8s
+      timer = setTimeout(() => {
+        setLights("green");
+        phase = "green";
+        greenAt = performance.now();
+        statusText.textContent = "GO! Tippen!";
+        hintLine.textContent = "Sou séier wéi méiglech!";
+      }, delay);
+
+    }, 600);
+  }
+
+  function handleTap(){
+    if(score >= TARGET){ return; }
+
+    // Early tap => small penalty / no points, but keep it fun
+    if(phase === "counting"){
+      statusText.textContent = "Ooops 😄 Ze fréi! Probéier nach eng Kéier…";
+      hintLine.textContent = "Waarden bis et gréng ass.";
+      // tiny penalty but never below 0
+      score = Math.max(0, score - 2);
+      updateScore(score);
+      // restart round quickly
+      clearTimeout(timer);
+      setLights("off");
+      phase = "idle";
+      timer = setTimeout(() => newRound(), 700);
+      return;
+    }
+
+    if(phase === "green"){
+      const rt = performance.now() - greenAt;
+
+      // Points based on reaction time (simple & fair)
+      // Fast tap => more points. Range ~2 to 10.
+      let pts = 2;
+      if(rt < 220) pts = 10;
+      else if(rt < 320) pts = 8;
+      else if(rt < 450) pts = 6;
+      else if(rt < 650) pts = 5;
+      else if(rt < 900) pts = 4;
+      else pts = 3;
+
+      score = Math.min(TARGET, score + pts);
+      updateScore(score);
+
+      statusText.textContent = `Top! +${pts} Punkten (Reaktioun: ${Math.round(rt)}ms)`;
+      hintLine.textContent = score >= TARGET ? "Gëtt opgemaach…" : "Nach eng Kéier!";
+
+      phase = "done";
+      tapBtn.disabled = true;
+
+      setTimeout(() => {
+        if(score >= TARGET) finish();
+        else{
+          setLights("off");
+          newRound();
+        }
+      }, 850);
+      return;
+    }
+  }
+
+  function finish(){
+    setLights("green");
+    tapBtn.disabled = true;
+    statusText.textContent = "🎁 Opgemaach!";
+    hintLine.textContent = "Du hues et gepackt.";
+    revealBox.classList.remove("hidden");
+    // Scroll reveal into view on small screens
+    revealBox.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+
+  function getPlayerFromURL(){
+    const u = new URL(window.location.href);
+    const p = (u.searchParams.get("player") || "").toLowerCase();
+    if(p === "mara" || p === "gilles") return p;
+    return null;
+  }
+})();
+</script>
+</body>
+</html>
