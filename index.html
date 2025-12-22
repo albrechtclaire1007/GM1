@@ -5,474 +5,554 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Kart-Challenge</title>
   <style>
-    html, body { margin:0; padding:0; height:100%; background:#0b0f14; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-    .wrap { height:100%; display:flex; flex-direction:column; }
-    header { padding:14px 14px 8px; color:#e9eef5; }
-    header .top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-    .title { font-size:20px; font-weight:800; letter-spacing:.2px; }
-    .sub { font-size:13px; opacity:.85; margin-top:4px; line-height:1.25; }
-    .pill { background:#151b23; border:1px solid #263041; border-radius:999px; padding:8px 10px; font-size:13px; min-width:110px; text-align:right; }
-    canvas { width:100%; flex:1; display:block; background:linear-gradient(#101826, #070a0f); touch-action:none; }
-    .controls {
-      display:flex; gap:10px; padding:12px 14px 18px; background:#0b0f14;
-      border-top:1px solid #1f2836;
+    :root{
+      --bg:#0b1020;
+      --panel:rgba(255,255,255,.08);
+      --panel2:rgba(0,0,0,.35);
+      --text:#eef2ff;
+      --muted:rgba(238,242,255,.75);
+      --accent:#7ee787;
+      --danger:#ff6b6b;
     }
-    button {
-      flex:1; padding:14px 12px; border-radius:14px; border:1px solid #2b3850;
-      background:#121a26; color:#e9eef5; font-size:16px; font-weight:800;
-      -webkit-tap-highlight-color: transparent;
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
+    #wrap{position:fixed;inset:0;display:flex;align-items:stretch;justify-content:center;}
+    canvas{display:block; width:100vw; height:100vh; touch-action:none;}
+    .hud{
+      position:fixed; left:12px; top:12px; right:12px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      pointer-events:none;
     }
-    button:active { transform: translateY(1px); }
-    .overlay {
+    .card{
+      pointer-events:none;
+      background:var(--panel);
+      border:1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(8px);
+      border-radius:16px;
+      padding:10px 12px;
+      display:flex; align-items:center; gap:10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .avatar{
+      width:46px;height:46px;border-radius:999px;
+      border:2px solid rgba(255,255,255,.25);
+      background:#111;
+      object-fit:cover;
+    }
+    .name{font-weight:700;line-height:1.1}
+    .sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .score{font-weight:800;font-size:22px}
+    .goal{font-size:12px;color:var(--muted)}
+    .pill{
+      padding:8px 10px;border-radius:999px;background:var(--panel2);
+      border:1px solid rgba(255,255,255,.12);
+      pointer-events:none;
+      display:flex;flex-direction:column;align-items:flex-end;
+    }
+    .controls{
+      position:fixed; left:0; right:0; bottom:14px;
+      display:flex; justify-content:center; gap:14px;
+      pointer-events:none;
+    }
+    .btn{
+      pointer-events:auto;
+      width:72px;height:72px;border-radius:18px;
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(8px);
+      color:var(--text);
+      font-size:26px;
+      display:flex;align-items:center;justify-content:center;
+      user-select:none;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .btn:active{transform:scale(.98)}
+    .modal{
       position:fixed; inset:0; display:none; align-items:center; justify-content:center;
-      background:rgba(0,0,0,.62); padding:18px;
+      background:rgba(0,0,0,.60);
+      padding:18px;
     }
-    .card {
-      width:min(520px, 100%); background:#0f1622; border:1px solid #2b3850; border-radius:18px;
-      padding:16px 16px 14px; color:#e9eef5;
-      box-shadow: 0 14px 50px rgba(0,0,0,.45);
+    .modal .box{
+      width:min(560px, 96vw);
+      background:rgba(10,14,26,.92);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:22px;
+      padding:18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
     }
-    .card h2 { margin:0 0 6px; font-size:20px; }
-    .card p { margin:8px 0; opacity:.9; line-height:1.3; }
-    .row { display:flex; gap:10px; margin-top:12px; }
-    .row button { background:#162136; }
-    .small { font-size:12px; opacity:.75; }
-    .revealBox {
-      margin-top:10px; padding:12px; border-radius:14px;
-      background:#101c2d; border:1px dashed #355079;
+    .modal h1{margin:0 0 8px 0; font-size:22px}
+    .modal p{margin:8px 0; color:var(--muted); line-height:1.35}
+    .big{
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:16px;
+      background:rgba(126,231,135,.14);
+      border:1px solid rgba(126,231,135,.25);
+      font-weight:800;
     }
-    .revealBox .big { font-size:18px; font-weight:900; margin-top:6px; }
+    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    .action{
+      pointer-events:auto;
+      border:none;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.16);
+      color:var(--text);
+      padding:12px 14px;
+      border-radius:14px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .action.primary{
+      background:rgba(126,231,135,.22);
+      border-color:rgba(126,231,135,.35);
+    }
+    .tiny{font-size:12px;color:var(--muted)}
   </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="top">
+  <div id="wrap">
+    <canvas id="c"></canvas>
+  </div>
+
+  <div class="hud">
+    <div class="card">
+      <img id="avatar" class="avatar" alt="Avatar">
       <div>
-        <div class="title">Kart-Challenge</div>
-        <div class="sub">Sammel ⭐ Stären a vermeid 💥 Hindernisser. <b>Zil: 50 Punkten</b>.</div>
-      </div>
-      <div class="pill">
-        Punkten: <b id="score">0</b><br/>
-        <span class="small">Best: <span id="best">0</span></span>
+        <div class="name" id="playerName">Spiller</div>
+        <div class="sub" id="tagline">Prett? Sammel 50 Punkten!</div>
       </div>
     </div>
-  </header>
 
-  <canvas id="game" width="720" height="1280"></canvas>
-
-  <div class="controls">
-    <button id="left" aria-label="Lénks">⬅️ Lénks</button>
-    <button id="right" aria-label="Riets">Riets ➡️</button>
+    <div class="pill">
+      <div class="score"><span id="score">0</span> ⭐</div>
+      <div class="goal">Zil: 50 ⭐</div>
+    </div>
   </div>
-</div>
 
-<!-- Start / Win / Game over overlay -->
-<div class="overlay" id="overlay">
-  <div class="card">
-    <h2 id="ovTitle">Prett?</h2>
-    <p id="ovText">
-      Tippen op <b>Start</b>. Fuert de Kart, sammelt ⭐ a kommt op <b>50</b>.
-    </p>
+  <div class="controls" aria-hidden="false">
+    <div class="btn" id="leftBtn">⟵</div>
+    <div class="btn" id="rightBtn">⟶</div>
+  </div>
 
-    <div class="revealBox" id="revealBox" style="display:none;">
-      <div><b>🎁 Surprise!</b> Du hues 50 Punkten erreecht.</div>
-      <div class="big" id="revealText">Hei ass däi Kaddo: <span id="voucherText">[DEIN VOUCHER TEXT]</span></div>
-      <div class="small" style="margin-top:8px;">
-        (Wann s de léiwer eng Box mat Code wëlls: “Deng zwou Ziffere fir d’Schlass ze knacken” kann ech och aktivéieren.)
+  <div class="modal" id="winModal">
+    <div class="box">
+      <h1>🏁 Bravo! Du hues 50 Punkten!</h1>
+      <p id="winText">
+        Deng zwou Ziffere fir d’Schlass ze knacken: <b>— —</b>
+      </p>
+
+      <div class="big">
+        🎁 Kaddo-Reveal: <span id="giftReveal">[Hei kënnt däi Voucher-Text / Detailer eran]</span>
+      </div>
+
+      <p class="tiny">
+        Tipp: Wann s du awer léiwer eng Schloss-Box wëlls, so mir just: ech stellen et direkt ëm, datt all Spiller 2 Zifferen kritt.
+      </p>
+
+      <div class="row">
+        <button class="action primary" id="playAgain">Nach eng Kéier</button>
+        <button class="action" id="closeModal">Zoumaachen</button>
       </div>
     </div>
-
-    <div class="row">
-      <button id="startBtn">Start</button>
-      <button id="restartBtn" style="display:none;">Nach eng Kéier</button>
-    </div>
-    <p class="small" style="margin-top:10px;">
-      Tipp: Um Handy geet et am beschten mat de Knäppercher ënnen (oder mat Pfeiltasten um PC).
-    </p>
   </div>
-</div>
 
 <script>
 (() => {
-  // ---------- Settings you can change ----------
-  const TARGET_SCORE = 50;
-
-  // Put your real voucher reveal text here:
-  const VOUCHER_REVEAL = "Karting-Voucher 🎟️ (Datum/Plaz steet op der Kaart)";
-
-  // Difficulty tweaks:
-  const SPEED_START = 7.0;
-  const SPEED_MAX   = 15.0;
-  const SPAWN_STAR_EVERY_MS = 550;   // more frequent = easier
-  const SPAWN_OBS_EVERY_MS  = 850;   // less frequent = easier
-  const OBS_PENALTY = 3;             // points lost on hit
-  const STAR_VALUE  = 1;
-
-  // ---------- Canvas / game state ----------
-  const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d');
-
-  const scoreEl = document.getElementById('score');
-  const bestEl  = document.getElementById('best');
-
-  const overlay = document.getElementById('overlay');
-  const ovTitle = document.getElementById('ovTitle');
-  const ovText  = document.getElementById('ovText');
-  const revealBox  = document.getElementById('revealBox');
-  const voucherText = document.getElementById('voucherText');
-  voucherText.textContent = VOUCHER_REVEAL;
-
-  const startBtn   = document.getElementById('startBtn');
-  const restartBtn = document.getElementById('restartBtn');
-
-  const leftBtn  = document.getElementById('left');
-  const rightBtn = document.getElementById('right');
-
-  // Fit canvas to device ratio (keep internal resolution stable-ish)
-  function resizeCanvas() {
-    const cssW = canvas.clientWidth;
-    const cssH = canvas.clientHeight;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    canvas.width  = Math.floor(cssW * dpr);
-    canvas.height = Math.floor(cssH * dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0); // draw in CSS pixels
-  }
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-
-  const laneCount = 3;
-  let lanes = []; // x centers, computed from canvas size
-
-  function computeLanes() {
-    const w = canvas.clientWidth;
-    const roadW = Math.min(420, w * 0.78);
-    const roadX = (w - roadW) / 2;
-    const laneW = roadW / laneCount;
-    lanes = Array.from({length: laneCount}, (_, i) => roadX + laneW*(i + 0.5));
-    return { roadX, roadW, laneW };
-  }
-
-  let running = false;
-  let score = 0;
-  let best = Number(localStorage.getItem('kart_best') || 0);
-  bestEl.textContent = best;
-
-  const player = {
-    lane: 1,
-    x: 0,
-    y: 0,
-    w: 44,
-    h: 64
+  // ============ AVATAREN (aus är Fotoen "gameified") ============
+  // Ech hu se fir kohärent Look als cartoon-ish Racer Avataren virbereet (PNG base64).
+  // Du kanns se och zu all Moment ersetzen.
+  const AVATARS = {
+    gilles: "%%AVATAR_GILLES%%",
+    mara:   "%%AVATAR_MARA%%"
   };
 
-  const stars = [];
-  const obstacles = [];
+  // ============ PLAYER SETUP ============
+  const params = new URLSearchParams(location.search);
+  const playerKey = (params.get("player") || "mara").toLowerCase();
+  const playerName = playerKey === "gilles" ? "Gilles" : "Mara";
 
-  let speed = SPEED_START;
-  let lastT = 0;
-  let starTimer = 0;
-  let obsTimer = 0;
+  // Optional: personaliséierte Reveal-Text (kanns du hei direkt ausfëllen)
+  // Beispill: "Karting-Voucher: ... Datum ... Plaz ..."
+  const GIFT_REVEAL_TEXT = "Karting-Voucher (Mario-Kart-Style) 🎟️ — kuck an d’Enveloppe / d’Box!";
 
-  function resetGame() {
-    score = 0;
-    scoreEl.textContent = score;
-    stars.length = 0;
-    obstacles.length = 0;
-    player.lane = 1;
-    speed = SPEED_START;
-    lastT = performance.now();
-    starTimer = 0;
-    obsTimer = 0;
-    revealBox.style.display = "none";
-    restartBtn.style.display = "none";
-    startBtn.style.display = "inline-block";
-    ovTitle.textContent = "Prett?";
-    ovText.innerHTML = "Tippen op <b>Start</b>. Fuert de Kart, sammelt ⭐ a kommt op <b>50</b>.";
+  // ============ GAME TUNING (Lues & easy) ============
+  const GOAL_SCORE = 50;
+
+  // "et ass ze séier" -> dës Wäerter si bewosst lues + kontrolléierbar
+  const roadSpeedMin = 140;   // px/sec
+  const roadSpeedMax = 240;   // px/sec
+  const accel = 260;          // px/sec^2
+  const steerSpeed = 520;     // px/sec lateral
+  const coinSpawnEvery = 0.55; // seconds (lues genuch)
+  const obstacleChance = 0.22; // 0..1
+
+  // ============ CANVAS ============
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+
+  function resize() {
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    canvas.width  = Math.floor(innerWidth * dpr);
+    canvas.height = Math.floor(innerHeight * dpr);
+    canvas.style.width = innerWidth + "px";
+    canvas.style.height = innerHeight + "px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
   }
+  window.addEventListener("resize", resize);
+  resize();
 
-  function showOverlay(type) {
-    overlay.style.display = "flex";
-    if (type === "start") {
-      ovTitle.textContent = "Prett?";
-      ovText.innerHTML = "Tippen op <b>Start</b>. Fuert de Kart, sammelt ⭐ a kommt op <b>50</b>.";
-      startBtn.style.display = "inline-block";
-      restartBtn.style.display = "none";
-      revealBox.style.display = "none";
-    } else if (type === "over") {
-      ovTitle.textContent = "Oups 😅";
-      ovText.innerHTML = "Du bass un en Hindernis komm. Probéier nach eng Kéier!";
-      startBtn.style.display = "none";
-      restartBtn.style.display = "inline-block";
-      revealBox.style.display = "none";
-    } else if (type === "win") {
-      ovTitle.textContent = "Bravo! 🏁";
-      ovText.innerHTML = "Du hues <b>50</b> Punkten erreecht!";
-      startBtn.style.display = "none";
-      restartBtn.style.display = "inline-block";
-      revealBox.style.display = "block";
-    }
+  // ============ UI ============
+  const avatarEl = document.getElementById("avatar");
+  const nameEl = document.getElementById("playerName");
+  const scoreEl = document.getElementById("score");
+  const winModal = document.getElementById("winModal");
+  const giftReveal = document.getElementById("giftReveal");
+  const winText = document.getElementById("winText");
+
+  nameEl.textContent = playerName;
+  avatarEl.src = AVATARS[playerKey] || AVATARS.mara;
+  giftReveal.textContent = GIFT_REVEAL_TEXT;
+
+  // (Falls de spéider zréck op Schloss-Box wëlls: hei géifs de 2 Zifferen setzen)
+  winText.innerHTML = `Deng zwou Ziffere fir d’Schlass ze knacken: <b>— —</b>`;
+
+  // ============ INPUT ============
+  let leftHeld = false, rightHeld = false;
+  const leftBtn = document.getElementById("leftBtn");
+  const rightBtn = document.getElementById("rightBtn");
+
+  function bindHold(el, onDown, onUp){
+    el.addEventListener("pointerdown", (e)=>{ e.preventDefault(); el.setPointerCapture(e.pointerId); onDown(); });
+    el.addEventListener("pointerup",   (e)=>{ e.preventDefault(); onUp(); });
+    el.addEventListener("pointercancel",(e)=>{ e.preventDefault(); onUp(); });
+    el.addEventListener("pointerleave",(e)=>{ /* noop */ });
   }
+  bindHold(leftBtn, ()=> leftHeld=true, ()=> leftHeld=false);
+  bindHold(rightBtn, ()=> rightHeld=true, ()=> rightHeld=false);
 
-  function hideOverlay() {
-    overlay.style.display = "none";
-  }
-
-  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
-
-  function moveLane(dir) {
-    player.lane = clamp(player.lane + dir, 0, laneCount - 1);
-  }
-
-  function spawnStar(road) {
-    const lane = Math.floor(Math.random()*laneCount);
-    stars.push({
-      lane,
-      x: lanes[lane],
-      y: -40,
-      r: 16
-    });
-  }
-
-  function spawnObstacle(road) {
-    const lane = Math.floor(Math.random()*laneCount);
-    obstacles.push({
-      lane,
-      x: lanes[lane],
-      y: -60,
-      w: 46,
-      h: 46
-    });
-  }
-
-  function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
-    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
-  }
-
-  function update(dtMs) {
-    const dt = dtMs / 16.67;
-
-    const road = computeLanes();
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
-
-    player.x = lanes[player.lane] - player.w/2;
-    player.y = h * 0.78;
-
-    // ramp speed slowly
-    speed = Math.min(SPEED_MAX, speed + 0.005 * dt);
-
-    // spawn timers
-    starTimer += dtMs;
-    obsTimer += dtMs;
-
-    if (starTimer >= SPAWN_STAR_EVERY_MS) {
-      starTimer = 0;
-      spawnStar(road);
-    }
-    if (obsTimer >= SPAWN_OBS_EVERY_MS) {
-      obsTimer = 0;
-      spawnObstacle(road);
-    }
-
-    // move items
-    const dy = speed * 8 * dt;
-
-    for (const s of stars) s.y += dy;
-    for (const o of obstacles) o.y += dy;
-
-    // collisions with stars
-    for (let i = stars.length - 1; i >= 0; i--) {
-      const s = stars[i];
-      const sx = s.x - s.r;
-      const sy = s.y - s.r;
-      const sw = s.r * 2;
-      const sh = s.r * 2;
-      if (rectsOverlap(player.x, player.y, player.w, player.h, sx, sy, sw, sh)) {
-        stars.splice(i, 1);
-        score += STAR_VALUE;
-        scoreEl.textContent = score;
-
-        if (score > best) {
-          best = score;
-          bestEl.textContent = best;
-          localStorage.setItem('kart_best', String(best));
-        }
-
-        if (score >= TARGET_SCORE) {
-          running = false;
-          showOverlay("win");
-        }
-      } else if (s.y > h + 60) {
-        stars.splice(i, 1);
-      }
-    }
-
-    // collisions with obstacles
-    for (let i = obstacles.length - 1; i >= 0; i--) {
-      const o = obstacles[i];
-      if (rectsOverlap(player.x, player.y, player.w, player.h, o.x - o.w/2, o.y - o.h/2, o.w, o.h)) {
-        // penalty + small "shake" feel
-        obstacles.splice(i, 1);
-        score = Math.max(0, score - OBS_PENALTY);
-        scoreEl.textContent = score;
-      } else if (o.y > h + 80) {
-        obstacles.splice(i, 1);
-      }
-    }
-  }
-
-  function draw() {
-    const road = computeLanes();
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
-
-    // background
-    ctx.clearRect(0,0,w,h);
-
-    // road
-    ctx.fillStyle = "#0b1320";
-    ctx.fillRect(road.roadX, 0, road.roadW, h);
-
-    // lane lines
-    ctx.strokeStyle = "rgba(255,255,255,0.12)";
-    ctx.lineWidth = 3;
-    for (let i = 1; i < laneCount; i++) {
-      const x = road.roadX + (road.roadW/laneCount)*i;
-      ctx.setLineDash([18, 18]);
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, h);
-      ctx.stroke();
-    }
-    ctx.setLineDash([]);
-
-    // stars (coins)
-    for (const s of stars) {
-      ctx.beginPath();
-      ctx.fillStyle = "#ffd24a";
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-      ctx.fill();
-
-      ctx.fillStyle = "rgba(0,0,0,0.18)";
-      ctx.beginPath();
-      ctx.arc(s.x-4, s.y+4, s.r*0.45, 0, Math.PI*2);
-      ctx.fill();
-
-      ctx.fillStyle = "#0b0f14";
-      ctx.font = "bold 18px system-ui";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("★", s.x, s.y+1);
-    }
-
-    // obstacles
-    for (const o of obstacles) {
-      ctx.save();
-      ctx.translate(o.x, o.y);
-      ctx.fillStyle = "#ff5a5a";
-      ctx.beginPath();
-      ctx.roundRect(-o.w/2, -o.h/2, o.w, o.h, 10);
-      ctx.fill();
-
-      ctx.fillStyle = "rgba(0,0,0,0.25)";
-      ctx.beginPath();
-      ctx.roundRect(-o.w/2+6, -o.h/2+6, o.w-12, o.h-12, 8);
-      ctx.fill();
-
-      ctx.fillStyle = "#0b0f14";
-      ctx.font = "900 18px system-ui";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("💥", 0, 1);
-      ctx.restore();
-    }
-
-    // player kart
-    ctx.save();
-    ctx.translate(player.x, player.y);
-    ctx.fillStyle = "#59c1ff";
-    ctx.beginPath();
-    ctx.roundRect(0, 0, player.w, player.h, 12);
-    ctx.fill();
-
-    // "helmet" window
-    ctx.fillStyle = "rgba(0,0,0,0.25)";
-    ctx.beginPath();
-    ctx.roundRect(6, 10, player.w-12, 22, 10);
-    ctx.fill();
-
-    // wheels
-    ctx.fillStyle = "#0b0f14";
-    ctx.beginPath(); ctx.roundRect(-8, 10, 10, 18, 6); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(player.w-2, 10, 10, 18, 6); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(-8, player.h-28, 10, 18, 6); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(player.w-2, player.h-28, 10, 18, 6); ctx.fill();
-
-    // driver icon placeholder (can be replaced with your stylised portrait later)
-    ctx.fillStyle = "rgba(255,255,255,0.9)";
-    ctx.beginPath();
-    ctx.arc(player.w/2, player.h-14, 10, 0, Math.PI*2);
-    ctx.fill();
-
-    ctx.restore();
-
-    // HUD: target hint
-    ctx.fillStyle = "rgba(255,255,255,0.85)";
-    ctx.font = "700 14px system-ui";
-    ctx.textAlign = "left";
-    ctx.fillText("Zil: 50 Punkten", 14, h - 14);
-  }
-
-  function loop(t) {
-    if (!running) return;
-    const dt = t - lastT;
-    lastT = t;
-
-    update(dt);
-    draw();
-    requestAnimationFrame(loop);
-  }
-
-  function startGame() {
-    hideOverlay();
-    running = true;
-    lastT = performance.now();
-    requestAnimationFrame(loop);
-  }
-
-  // ---------- Input ----------
-  leftBtn.addEventListener('click', () => moveLane(-1));
-  rightBtn.addEventListener('click', () => moveLane(+1));
-
-  // swipe left/right on canvas
-  let touchX = null;
-  canvas.addEventListener('touchstart', (e) => {
-    if (!e.touches || !e.touches[0]) return;
-    touchX = e.touches[0].clientX;
-  }, {passive:true});
-  canvas.addEventListener('touchend', (e) => {
-    if (touchX === null) return;
-    const endX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : touchX;
-    const dx = endX - touchX;
-    if (Math.abs(dx) > 22) moveLane(dx > 0 ? +1 : -1);
-    touchX = null;
-  }, {passive:true});
-
-  // keyboard
-  window.addEventListener('keydown', (e) => {
-    if (e.key === "ArrowLeft") moveLane(-1);
-    if (e.key === "ArrowRight") moveLane(+1);
+  window.addEventListener("keydown", (e)=>{
+    if(e.key==="ArrowLeft") leftHeld=true;
+    if(e.key==="ArrowRight") rightHeld=true;
+  });
+  window.addEventListener("keyup", (e)=>{
+    if(e.key==="ArrowLeft") leftHeld=false;
+    if(e.key==="ArrowRight") rightHeld=false;
   });
 
-  startBtn.addEventListener('click', () => { resetGame(); startGame(); });
-  restartBtn.addEventListener('click', () => { resetGame(); startGame(); });
+  // Touch/drag anywhere to set a target x (super easy on phone)
+  let targetX = null;
+  canvas.addEventListener("pointerdown", (e)=>{ targetX = e.clientX; });
+  canvas.addEventListener("pointermove", (e)=>{ if(targetX!==null) targetX = e.clientX; });
+  canvas.addEventListener("pointerup", ()=>{ targetX = null; });
+  canvas.addEventListener("pointercancel", ()=>{ targetX = null; });
 
-  // show start overlay initially
-  resetGame();
-  showOverlay("start");
+  // ============ GAME WORLD ============
+  const W = () => innerWidth;
+  const H = () => innerHeight;
 
+  const road = {
+    x: () => W()/2,
+    w: () => Math.min(520, W()*0.74),
+    lineOffset: 0
+  };
+
+  const kart = {
+    x: W()/2,
+    y: H()*0.78,
+    w: 46,
+    h: 70,
+    vx: 0
+  };
+
+  let score = 0;
+  let speed = roadSpeedMin;
+  let running = true;
+
+  const coins = [];
+  const obstacles = [];
+  let spawnT = 0;
+
+  function reset(){
+    score = 0;
+    scoreEl.textContent = "0";
+    speed = roadSpeedMin;
+    kart.x = W()/2;
+    kart.vx = 0;
+    coins.length = 0;
+    obstacles.length = 0;
+    spawnT = 0;
+    running = true;
+    winModal.style.display = "none";
+    lastTs = null;
+    requestAnimationFrame(loop);
+  }
+
+  // Helpers
+  const clamp = (v,min,max)=> Math.max(min, Math.min(max,v));
+  function roadBounds(){
+    const rw = road.w();
+    return { left: road.x()-rw/2, right: road.x()+rw/2 };
+  }
+
+  function spawnCoin(){
+    const {left,right} = roadBounds();
+    const margin = 40;
+    const x = left + margin + Math.random()*(right-left-2*margin);
+    coins.push({x, y:-30, r:14, taken:false});
+  }
+  function spawnObstacle(){
+    const {left,right} = roadBounds();
+    const margin = 46;
+    const x = left + margin + Math.random()*(right-left-2*margin);
+    obstacles.push({x, y:-40, w:42, h:42});
+  }
+
+  function hitCircleRect(cx,cy,r, rx,ry,rw,rh){
+    const nx = clamp(cx, rx, rx+rw);
+    const ny = clamp(cy, ry, ry+rh);
+    const dx = cx - nx, dy = cy - ny;
+    return (dx*dx + dy*dy) <= r*r;
+  }
+
+  // ============ DRAW ============
+  function drawRoad(dt){
+    const rw = road.w();
+    const cx = road.x();
+    const left = cx - rw/2;
+    const top = 0, bottom = H();
+
+    // Asphalt
+    ctx.fillStyle = "#1b2238";
+    ctx.fillRect(left, top, rw, bottom);
+
+    // Side grass
+    ctx.fillStyle = "#0e1528";
+    ctx.fillRect(0,0,left, bottom);
+    ctx.fillRect(left+rw,0,W(), bottom);
+
+    // Edge lines
+    ctx.strokeStyle = "rgba(255,255,255,.25)";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(left+2,0); ctx.lineTo(left+2,bottom);
+    ctx.moveTo(left+rw-2,0); ctx.lineTo(left+rw-2,bottom);
+    ctx.stroke();
+
+    // Center dashed line
+    road.lineOffset += speed * dt;
+    const dashH = 34, gap = 26;
+    const x = cx;
+    ctx.fillStyle = "rgba(255,255,255,.25)";
+    for(let y = -((road.lineOffset)%(dashH+gap)); y < bottom; y += dashH+gap){
+      ctx.fillRect(x-4, y, 8, dashH);
+    }
+  }
+
+  function drawKart(){
+    // kart body
+    const x = kart.x - kart.w/2;
+    const y = kart.y - kart.h/2;
+
+    // shadow
+    ctx.fillStyle = "rgba(0,0,0,.35)";
+    ctx.beginPath();
+    ctx.ellipse(kart.x, kart.y+kart.h*0.32, kart.w*0.62, kart.h*0.18, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // body
+    ctx.fillStyle = "#ff4d6d";
+    roundRect(x, y+10, kart.w, kart.h-20, 12, true);
+
+    // cockpit
+    ctx.fillStyle = "rgba(0,0,0,.28)";
+    roundRect(x+8, y+20, kart.w-16, kart.h-40, 10, true);
+
+    // wheels
+    ctx.fillStyle = "#0b0f1a";
+    roundRect(x-10, y+16, 14, 18, 6, true);
+    roundRect(x-10, y+kart.h-34, 14, 18, 6, true);
+    roundRect(x+kart.w-4, y+16, 14, 18, 6, true);
+    roundRect(x+kart.w-4, y+kart.h-34, 14, 18, 6, true);
+
+    // front highlight
+    ctx.fillStyle = "rgba(255,255,255,.18)";
+    roundRect(x+10, y+14, kart.w-20, 10, 8, true);
+
+    // small "star" badge
+    ctx.fillStyle = "rgba(255,255,255,.85)";
+    ctx.beginPath();
+    ctx.arc(kart.x, y+18, 5, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  function drawCoins(){
+    for(const c of coins){
+      if(c.taken) continue;
+      ctx.save();
+      ctx.translate(c.x, c.y);
+      // glow
+      ctx.fillStyle = "rgba(255,215,0,.18)";
+      ctx.beginPath();
+      ctx.arc(0,0,c.r*1.9,0,Math.PI*2);
+      ctx.fill();
+      // coin
+      ctx.fillStyle = "#ffd400";
+      ctx.beginPath();
+      ctx.arc(0,0,c.r,0,Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,.25)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      // star
+      ctx.fillStyle = "rgba(0,0,0,.25)";
+      drawStar(0,0,5,7,3);
+      ctx.restore();
+    }
+  }
+
+  function drawObstacles(){
+    for(const o of obstacles){
+      ctx.save();
+      ctx.translate(o.x, o.y);
+      // banana-ish hazard (original, not copied)
+      ctx.fillStyle = "#ffcf5a";
+      roundRect(-o.w/2, -o.h/2, o.w, o.h, 12, true);
+      ctx.fillStyle = "rgba(0,0,0,.18)";
+      ctx.beginPath();
+      ctx.arc(0, 4, 10, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawStar(cx,cy,spikes,outerR,innerR){
+    let rot = Math.PI/2 * 3;
+    let x = cx, y = cy;
+    const step = Math.PI / spikes;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - outerR);
+    for(let i=0;i<spikes;i++){
+      x = cx + Math.cos(rot) * outerR;
+      y = cy + Math.sin(rot) * outerR;
+      ctx.lineTo(x,y);
+      rot += step;
+      x = cx + Math.cos(rot) * innerR;
+      y = cy + Math.sin(rot) * innerR;
+      ctx.lineTo(x,y);
+      rot += step;
+    }
+    ctx.lineTo(cx, cy - outerR);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function roundRect(x,y,w,h,r,fill){
+    const rr = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr, y);
+    ctx.arcTo(x+w, y, x+w, y+h, rr);
+    ctx.arcTo(x+w, y+h, x, y+h, rr);
+    ctx.arcTo(x, y+h, x, y, rr);
+    ctx.arcTo(x, y, x+w, y, rr);
+    ctx.closePath();
+    if(fill) ctx.fill();
+  }
+
+  // ============ LOOP ============
+  let lastTs = null;
+
+  function loop(ts){
+    if(!running) return;
+    if(lastTs===null) lastTs = ts;
+    const dt = Math.min(0.033, (ts - lastTs)/1000);
+    lastTs = ts;
+
+    // speed ramps gently
+    speed = clamp(speed + accel*dt, roadSpeedMin, roadSpeedMax);
+
+    // steering
+    let dir = 0;
+    if(leftHeld) dir -= 1;
+    if(rightHeld) dir += 1;
+
+    if(targetX !== null){
+      // move toward finger, smoothly
+      const dx = targetX - kart.x;
+      kart.vx = clamp(dx*6, -steerSpeed, steerSpeed);
+    } else {
+      kart.vx = dir * steerSpeed;
+    }
+
+    kart.x += kart.vx * dt;
+
+    // keep inside road
+    const {left,right} = roadBounds();
+    const pad = kart.w*0.52;
+    kart.x = clamp(kart.x, left+pad, right-pad);
+
+    // spawns
+    spawnT += dt;
+    if(spawnT >= coinSpawnEvery){
+      spawnT = 0;
+      spawnCoin();
+      if(Math.random() < obstacleChance) spawnObstacle();
+    }
+
+    // move objects
+    for(const c of coins) c.y += speed*dt;
+    for(const o of obstacles) o.y += speed*dt;
+
+    // collisions
+    const kx = kart.x - kart.w/2;
+    const ky = kart.y - kart.h/2;
+    for(const c of coins){
+      if(c.taken) continue;
+      if(hitCircleRect(c.x, c.y, c.r, kx, ky, kart.w, kart.h)){
+        c.taken = true;
+        score += 1;
+        scoreEl.textContent = String(score);
+        if(score >= GOAL_SCORE){
+          win();
+          return;
+        }
+      }
+    }
+    for(const o of obstacles){
+      // if hit -> slow a bit (but no game over)
+      const rx = o.x - o.w/2, ry = o.y - o.h/2;
+      if(hitCircleRect(kart.x, kart.y, 18, rx, ry, o.w, o.h)){
+        speed = Math.max(roadSpeedMin, speed - 140);
+      }
+    }
+
+    // cleanup
+    while(coins.length && coins[0].y > H()+60) coins.shift();
+    while(obstacles.length && obstacles[0].y > H()+80) obstacles.shift();
+
+    // draw
+    ctx.clearRect(0,0,W(),H());
+    drawRoad(dt);
+    drawCoins();
+    drawObstacles();
+    drawKart();
+
+    requestAnimationFrame(loop);
+  }
+
+  function win(){
+    running = false;
+    // keep Lux text user requested:
+    winText.innerHTML = `Deng zwou Ziffere fir d’Schlass ze knacken: <b>— —</b>`;
+    // digital reveal:
+    winModal.style.display = "flex";
+  }
+
+  document.getElementById("playAgain").addEventListener("click", reset);
+  document.getElementById("closeModal").addEventListener("click", ()=>{ winModal.style.display="none"; });
+
+  // start
+  requestAnimationFrame(loop);
 })();
 </script>
 </body>
 </html>
+
