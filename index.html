@@ -3,301 +3,573 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-  <title>Kart-Challenge</title>
+  <title>X-mas 2025</title>
+
   <style>
-    :root { --bg:#0f1220; --card:#1b2140; --text:#f3f5ff; --muted:#b8c0ff; }
-    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;}
-    body{background:radial-gradient(1200px 600px at 50% -10%, #2a3775 0%, var(--bg) 55%, #090b14 100%); color:var(--text);}
-    .wrap{max-width:980px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
-    .top{display:flex;gap:12px;align-items:stretch;flex-wrap:wrap;}
-    .card{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:12px; backdrop-filter: blur(6px);}
-    .driver{display:flex;gap:12px;align-items:center;min-width:280px;flex:1;}
-    .avatar{width:92px;height:92px;border-radius:16px;overflow:hidden;background:#0b0e1a;border:1px solid rgba(255,255,255,.12);flex:0 0 auto;}
-    .avatar img{width:100%;height:100%;object-fit:cover;}
-    .driver h1{font-size:18px;margin:0 0 4px 0;}
-    .driver p{margin:0;color:var(--muted);font-size:13px;line-height:1.25;}
-    .stats{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
-    .pill{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:999px;
-      background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.10); font-size:14px;}
-    .pill b{font-variant-numeric:tabular-nums;}
-    .gamecard{flex:1;min-width:280px;}
-    canvas{width:100%;height:auto;border-radius:16px;background:linear-gradient(180deg,#121736,#0b0e1a);
-      border:1px solid rgba(255,255,255,.10); touch-action:none;}
-    .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
-    button{background:#3b5bff;color:white;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
-    button.secondary{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12)}
-    button:disabled{opacity:.55;cursor:not-allowed}
-    .hint{color:var(--muted);font-size:12px;margin:6px 0 0}
-    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.65)}
-    .modal{max-width:520px;width:100%;border-radius:18px;padding:16px;background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
-      border:1px solid rgba(255,255,255,.12)}
-    .modal h2{margin:0 0 8px}
-    .modal p{margin:0 0 12px;color:var(--muted)}
-    .bigScore{font-size:38px;margin:10px 0 0;font-weight:900}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .row > *{flex:1}
-    .small{font-size:12px;color:var(--muted)}
-    input[type="text"]{background:rgba(255,255,255,.08);color:var(--text);outline:none}
-    input::placeholder{color:rgba(255,255,255,.55)}
+    /* ===== Font (Mario Kart style) ===== */
+    @font-face{
+      font-family: "Mario256";
+      src: url("https://github.com/albrechtclaire1007/GM1/raw/refs/heads/main/SuperMario256.ttf") format("truetype");
+      font-display: swap;
+    }
+
+    :root{
+      --bg:#ffffff;
+      --text:#111;
+      --muted:#555;
+      --accent:#1e40ff;
+      --danger:#ff2b2b;
+      --ok:#16a34a;
+      --laneBorder:#e6e6e6;
+      --topbar:#111;
+    }
+
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+    .mk{font-family:"Mario256", system-ui, sans-serif; letter-spacing: .5px;}
+    .screen{min-height:100vh;display:none;}
+    .screen.active{display:block;}
+    .center{max-width:980px;margin:0 auto;padding:22px;}
+    .title{font-size:44px; margin:0 0 10px 0;}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      padding:14px 18px;border-radius:14px;border:0;background:var(--accent);
+      color:#fff;font-weight:800;cursor:pointer;min-width:160px;
+      box-shadow:0 6px 18px rgba(0,0,0,.12);
+    }
+    .btn.secondary{background:#111;}
+    .btn:active{transform:translateY(1px);}
+    .p{font-size:18px;line-height:1.35;color:var(--muted);margin:0 0 18px 0;max-width:820px;}
+
+    /* ===== Player select ===== */
+    .players{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:18px;
+      align-items:stretch;
+    }
+    @media (max-width:780px){
+      .players{grid-template-columns: 1fr; }
+      .title{font-size:38px;}
+    }
+    .playerCard{
+      border:2px solid #eee;border-radius:18px;padding:14px;
+      display:flex;gap:14px;align-items:center;cursor:pointer;
+      transition:.12s ease;
+    }
+    .playerCard:hover{border-color:#d2d9ff; background:#fafbff;}
+    .playerCard img{
+      width:160px;height:auto;max-height:160px;object-fit:contain;border-radius:14px;
+      background:#f6f6f6;border:1px solid #eee;
+    }
+    .playerName{font-size:34px;margin:0;}
+    .note{margin-top:8px;color:var(--muted);font-size:14px;}
+
+    /* ===== Countdown ===== */
+    .countdownWrap{
+      position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.92); z-index:50;
+    }
+    .countNum{
+      font-family:"Mario256", system-ui, sans-serif;
+      font-size:min(28vw,180px);
+      color:#111;
+      text-shadow:0 10px 0 rgba(0,0,0,.06);
+    }
+
+    /* ===== Game full page ===== */
+    #gameScreen{padding:0; margin:0;}
+    .topbar{
+      position:fixed;left:0;right:0;top:0;height:56px;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 14px;background:#fff;border-bottom:2px solid #eee; z-index:10;
+    }
+    .topbar .mk{font-size:22px;}
+    .topbar .stat{display:flex;gap:14px;align-items:center;}
+    .chip{font-family:"Mario256", system-ui, sans-serif; font-size:18px;}
+    .chip small{font-family:system-ui; font-size:12px; color:var(--muted); margin-left:6px;}
+    .timer{color:#111;}
+    .score{color:#111;}
+
+    .gameArea{
+      position:fixed;inset:56px 0 0 0;
+      display:flex;align-items:stretch;justify-content:center;
+      background:#fff;
+    }
+    canvas{
+      width:100%;
+      height:100%;
+      display:block;
+      touch-action:none;
+      background:#fff;
+    }
+
+    /* ===== Modal ===== */
+    .overlay{
+      position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+      background:rgba(0,0,0,.35); z-index:60; padding:18px;
+    }
+    .modal{
+      width:min(720px, 96vw);
+      background:#fff;border-radius:20px;padding:18px 18px 14px 18px;
+      box-shadow:0 20px 60px rgba(0,0,0,.25);
+      border:2px solid #eee;
+      text-align:center;
+    }
+    .modal h2{margin:0 0 10px;font-size:34px;}
+    .modal .mk{font-size:34px;}
+    .modal .btn{width:100%; margin-top:10px;}
+
+    /* ===== Chest screen ===== */
+    .chestWrap{max-width:980px;margin:0 auto;padding:22px;text-align:center;}
+    .chestTitle{margin:0 0 10px 0;font-size:40px;}
+    .chestMedia{
+      width:min(740px, 96vw);
+      margin:14px auto 10px;
+      border-radius:18px;
+      border:2px solid #eee;
+      overflow:hidden;
+      background:#f7f7f7;
+    }
+    .chestMedia img, .chestMedia video{width:100%;height:auto;display:block;}
+    .codeRow{
+      display:flex;gap:10px;justify-content:center;align-items:center;
+      margin:14px 0 6px;
+      flex-wrap:wrap;
+    }
+    .digit{
+      width:64px;height:64px;border-radius:14px;border:2px solid #e6e6e6;
+      text-align:center;font-size:28px;font-weight:900;
+      outline:none;
+      font-family:"Mario256", system-ui, sans-serif;
+    }
+    .help{color:var(--muted);font-size:14px;margin-top:8px;}
+    .battlePopupImg{width:min(720px, 96vw);height:auto;border-radius:18px;border:2px solid #eee;display:block;}
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div class="card driver">
-        <div class="avatar"><img id="avatarImg" alt="Avatar" src="gilles.png"></div>
-        <div>
-          <h1 id="driverName">Gilles</h1>
-          <p id="driverLine">Bereet? Sammel ⭐ (+5) a weich 🍌 aus (-5). Zäit: <b>45s</b>.</p>
-          <div class="stats">
-            <span class="pill">⭐ Stär: <b>+5</b></span>
-            <span class="pill">🍌 Banana: <b>-5</b></span>
-            <span class="pill">Score: <b id="scoreTxt">0</b></span>
-            <span class="pill">Zäit: <b id="timeTxt">45</b>s</span>
+
+  <!-- ===================== 1) Instructions Screen ===================== -->
+  <section id="instructionsScreen" class="screen active">
+    <div class="center">
+      <h1 class="title mk">X-mas 2025</h1>
+      <p class="p">
+        Fir äre erauszefanne wat äre Kaddo ass, musst der an 50 Sekonnen 50 Punkte sammelen.<br/>
+        Sammel ⭐️ fir Punkten ze sammelen an evitéier 🍌! Wann s du dat ronnbréngs kriss du 2 Stelle vum Geheimcode.
+        Där musst et allen 2 packen fir déi 4 Zifferen ze fannen.
+      </p>
+      <button id="goBtn" class="btn mk">A lass!</button>
+      <div class="note">Tip: Dat funktionéiert um Handy (Portrait oder Landscape) an um PC.</div>
+    </div>
+  </section>
+
+  <!-- ===================== 2) Player Select Screen ===================== -->
+  <section id="playerScreen" class="screen">
+    <div class="center">
+      <h1 class="title mk">Wien spillt?</h1>
+
+      <div class="players">
+        <div class="playerCard" role="button" tabindex="0" data-player="gilles">
+          <img src="gilles.png" alt="Gilles Avatar">
+          <div>
+            <p class="playerName mk">Gilles</p>
+            <div class="note">Zil: 50 Punkten an 50 Sekonnen</div>
           </div>
-          <div class="hint" id="controlHint">Desktop: Pfeiltasten • Mobile: Tippen/halen lénks/riets</div>
+        </div>
+
+        <div class="playerCard" role="button" tabindex="0" data-player="mara">
+          <img src="mara.png" alt="Mara Avatar">
+          <div>
+            <p class="playerName mk">Mara</p>
+            <div class="note">Zil: 50 Punkten an 50 Sekonnen</div>
+          </div>
         </div>
       </div>
 
-      <div class="card gamecard">
-        <div class="controls">
-          <div class="small">Kart-Challenge (LU)</div>
-          <div class="row">
-            <button id="startBtn">Start</button>
-            <button id="restartBtn" class="secondary">Neistarten</button>
-          </div>
-        </div>
-        <div class="hint">Zil: Sammel esou vill ⭐ wéi méiglech an trëff keng 🍌.</div>
-        <canvas id="c" width="900" height="520" aria-label="Kart game canvas"></canvas>
+      <div class="note" style="margin-top:12px">Tip: Tippen op d’Bild fir unzefänken.</div>
+    </div>
+  </section>
+
+  <!-- ===================== Countdown Overlay ===================== -->
+  <div id="countdownWrap" class="countdownWrap" aria-hidden="true">
+    <div id="countNum" class="countNum">3</div>
+  </div>
+
+  <!-- ===================== 3) Game Screen (full page) ===================== -->
+  <section id="gameScreen" class="screen">
+    <div class="topbar">
+      <div class="mk" id="topName">Gilles</div>
+      <div class="stat">
+        <div class="chip timer mk"><span id="topTimer">0:50</span></div>
+        <div class="chip score mk">Score: <span id="topScore">0</span></div>
       </div>
+    </div>
+
+    <div class="gameArea">
+      <canvas id="gameCanvas" width="900" height="1600"></canvas>
+    </div>
+  </section>
+
+  <!-- ===================== End Modal ===================== -->
+  <div id="endOverlay" class="overlay" aria-hidden="true">
+    <div class="modal">
+      <h2 id="endTitle" class="mk">Super!</h2>
+      <div id="endText" class="mk">Deng 2 Ziffere sinn 17!</div>
+      <button id="toChestBtn" class="btn mk">Weider bei d'Schatzkëscht</button>
     </div>
   </div>
 
-  <div class="overlay" id="overlay">
-    <div class="modal">
-      <h2 id="endTitle">Fäerdeg!</h2>
-      <p id="endText">Gëff elo de Geheimcode an. Nëmmen da geet d’Iwwerraschung op… 🎁</p>
+  <!-- ===================== 4) Chest Screen ===================== -->
+  <section id="chestScreen" class="screen">
+    <div class="chestWrap">
+      <h1 class="chestTitle mk">D'Schatzkëscht</h1>
 
-      <div class="bigScore">Score: <span id="finalScore">0</span></div>
-
-      <div style="margin-top:14px">
-        <label for="codeInput" class="small">Geheimcode:</label>
-        <input id="codeInput"
-               type="text"
-               inputmode="numeric"
-               autocomplete="one-time-code"
-               maxlength="6"
-               placeholder="z.B. 4817"
-               style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);margin-top:6px;font-size:18px;text-align:center" />
-        <div id="codeFeedback" class="small" style="margin-top:6px;color:#ffb3b3"></div>
-
-        <button id="revealBtn"
-                style="margin-top:12px;display:none;width:100%"
-                type="button">
-          🏁 Wou geet et hin?
-        </button>
+      <div class="chestMedia" id="chestMedia">
+        <!-- start with static png -->
+        <img id="chestImg" src="këscht.png" alt="Këscht">
+        <video id="chestVid" src="këscht.mp4" style="display:none" playsinline muted></video>
       </div>
 
-      <div class="hint" style="margin-top:10px">Tip: Wann et net klappt, kontrolléier d’Zifferen nach eng Kéier.</div>
-
-      <div class="row" style="margin-top:12px">
-        <button id="playAgain" type="button">Nach eng Kéier</button>
-        <button id="closeModal" class="secondary" type="button">Zoumaachen</button>
+      <div class="codeRow" aria-label="Code Input">
+        <input class="digit" inputmode="numeric" maxlength="1" id="d1">
+        <input class="digit" inputmode="numeric" maxlength="1" id="d2">
+        <input class="digit" inputmode="numeric" maxlength="1" id="d3">
+        <input class="digit" inputmode="numeric" maxlength="1" id="d4">
       </div>
+
+      <div class="help">Gëff déi 4 Zifferen an, fir d’Këscht opzemaachen.</div>
+      <div class="help" id="chestFeedback" style="min-height:18px"></div>
+    </div>
+  </section>
+
+  <!-- ===================== Battlekart Popup (after chest opens) ===================== -->
+  <div id="battleOverlay" class="overlay" aria-hidden="true">
+    <div class="modal" style="padding:10px">
+      <img src="battlekart.png" alt="Battlekart" class="battlePopupImg">
     </div>
   </div>
 
 <script>
 (() => {
-  // ======= CONFIG =======
-  const SECRET_CODE = "4817"; // <-- HEEI den richtege Code asetzen (4 oder 6 Zifferen)
+  /* ===================== ASSETS NEEDED (same folder) =====================
+     gilles.png
+     mara.png
+     kë­scht.png
+     kë­scht.mp4
+     battlekart.png
+  ======================================================================= */
 
-  const config = {
-    durationSec: 45,
-    scoreStar: +5,
-    scoreBanana: -5,
-    spawnRate: 0.65,      // base spawn per second
-    maxObjects: 18,
-    speedMin: 180,
-    speedMax: 320,
+  /* ===================== FIXED GAME REQUIREMENTS ===================== */
+  const GAME_SECONDS = 50;
+  const TARGET_SCORE = 50;
+
+  // Pop-up digits:
+  const PLAYER_DIGITS = {
+    gilles: "17",
+    mara: "48"
   };
 
-  // --- Player selection via URL: ?player=gilles or ?player=mara
-  const params = new URLSearchParams(location.search);
-  const player = (params.get("player") || "gilles").toLowerCase();
+  // The 4-digit chest code (Gilles then Mara):
+  const CHEST_CODE = "1748";
 
-  const avatarImg = document.getElementById("avatarImg");
-  const driverName = document.getElementById("driverName");
+  /* ===================== SCREENS ===================== */
+  const screens = {
+    instructions: document.getElementById("instructionsScreen"),
+    player: document.getElementById("playerScreen"),
+    game: document.getElementById("gameScreen"),
+    chest: document.getElementById("chestScreen")
+  };
 
-  if (player === "mara") {
-    avatarImg.src = "mara.png";
-    driverName.textContent = "Mara";
-  } else {
-    avatarImg.src = "gilles.png";
-    driverName.textContent = "Gilles";
+  const goBtn = document.getElementById("goBtn");
+  const countdownWrap = document.getElementById("countdownWrap");
+  const countNum = document.getElementById("countNum");
+
+  const topName = document.getElementById("topName");
+  const topTimer = document.getElementById("topTimer");
+  const topScore = document.getElementById("topScore");
+
+  const endOverlay = document.getElementById("endOverlay");
+  const endText = document.getElementById("endText");
+  const toChestBtn = document.getElementById("toChestBtn");
+
+  const battleOverlay = document.getElementById("battleOverlay");
+
+  function showScreen(name){
+    Object.values(screens).forEach(s => s.classList.remove("active"));
+    screens[name].classList.add("active");
+    window.scrollTo(0,0);
   }
 
-  const canvas = document.getElementById("c");
+  /* ===================== PLAYER SELECT ===================== */
+  let currentPlayer = null;
+
+  goBtn.addEventListener("click", () => showScreen("player"));
+
+  document.querySelectorAll(".playerCard").forEach(card => {
+    const pick = () => {
+      currentPlayer = card.dataset.player;
+      startCountdownThenGame();
+    };
+    card.addEventListener("click", pick);
+    card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") pick(); });
+  });
+
+  /* ===================== COUNTDOWN ===================== */
+  function startCountdownThenGame(){
+    showScreen("game");
+    topName.textContent = currentPlayer === "mara" ? "Mara" : "Gilles";
+    countdownWrap.style.display = "flex";
+    countdownWrap.setAttribute("aria-hidden","false");
+
+    let n = 3;
+    countNum.textContent = n;
+    const tick = () => {
+      n -= 1;
+      if (n <= 0){
+        countdownWrap.style.display = "none";
+        countdownWrap.setAttribute("aria-hidden","true");
+        gameStart();
+        return;
+      }
+      countNum.textContent = n;
+      setTimeout(tick, 800);
+    };
+    setTimeout(tick, 800);
+  }
+
+  /* ===================== GAME (3 lanes) ===================== */
+  const canvas = document.getElementById("gameCanvas");
   const ctx = canvas.getContext("2d");
 
-  const scoreTxt = document.getElementById("scoreTxt");
-  const timeTxt  = document.getElementById("timeTxt");
+  // Full-page scaling: we draw in canvas resolution; CSS stretches to fill viewport.
+  function resizeCanvasToViewport(){
+    // keep internal resolution crisp
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const w = window.innerWidth;
+    const h = window.innerHeight - 56; // minus topbar
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0); // draw in CSS pixels
+  }
+  window.addEventListener("resize", () => {
+    if (screens.game.classList.contains("active")) resizeCanvasToViewport();
+  });
 
-  const startBtn = document.getElementById("startBtn");
-  const restartBtn = document.getElementById("restartBtn");
-
-  const overlay = document.getElementById("overlay");
-  const finalScoreEl = document.getElementById("finalScore");
-  const playAgainBtn = document.getElementById("playAgain");
-  const closeModalBtn = document.getElementById("closeModal");
-
-  // Code UI
-  const codeInput = document.getElementById("codeInput");
-  const codeFeedback = document.getElementById("codeFeedback");
-  const revealBtn = document.getElementById("revealBtn");
-
-  // World
-  const W = canvas.width, H = canvas.height;
-
-  // Player (kart)
-  const kart = {
-    x: W * 0.5,
-    y: H - 70,
-    w: 86,
-    h: 42,
-    vx: 0,
-    speed: 520
+  // Lanes
+  const state = {
+    running: false,
+    timeLeft: GAME_SECONDS,
+    score: 0,
+    lane: 1, // 0..2
+    items: [],
+    lastTs: 0,
+    spawnAcc: 0,
+    avatarImg: null
   };
 
-  // Objects
-  // type: "star" or "banana"
-  let objs = [];
+  const laneCount = 3;
 
-  // Game state
-  let running = false;
-  let lastT = 0;
-  let score = 0;
-  let timeLeft = config.durationSec;
-  let spawnAcc = 0;
-
-  // Input
-  const keys = { left:false, right:false };
-  let touchDir = 0; // -1 left, +1 right
-
-  function reset() {
-    running = false;
-    lastT = 0;
-    score = 0;
-    timeLeft = config.durationSec;
-    objs = [];
-    spawnAcc = 0;
-    kart.x = W * 0.5;
-    kart.vx = 0;
-    scoreTxt.textContent = score;
-    timeTxt.textContent = timeLeft;
-
-    // reset modal/code state
-    overlay.style.display = "none";
-    codeInput.value = "";
-    codeFeedback.textContent = "";
-    revealBtn.style.display = "none";
-
-    draw(0);
+  function fmtTime(sec){
+    const s = Math.max(0, Math.ceil(sec));
+    return `0:${String(s).padStart(2,"0")}`;
   }
 
-  function start() {
-    if (running) return;
-    running = true;
-    lastT = performance.now();
-    requestAnimationFrame(loop);
+  function resetGame(){
+    state.running = false;
+    state.timeLeft = GAME_SECONDS;
+    state.score = 0;
+    state.lane = 1;
+    state.items = [];
+    state.lastTs = 0;
+    state.spawnAcc = 0;
+    topScore.textContent = "0";
+    topTimer.textContent = fmtTime(GAME_SECONDS);
   }
 
-  function end() {
-    running = false;
-    finalScoreEl.textContent = score;
-
-    // open modal
-    overlay.style.display = "flex";
-    // focus input for easy typing
-    setTimeout(() => codeInput.focus(), 50);
+  // load player avatar (bottom “kart”)
+  function loadAvatar(){
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = currentPlayer === "mara" ? "mara.png" : "gilles.png";
+    });
   }
 
-  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-  function rand(a,b){ return a + Math.random()*(b-a); }
+  // Input: click/tap left/right third; or arrow keys
+  function setLaneFromX(x){
+    const w = canvas.clientWidth || window.innerWidth;
+    const third = w / laneCount;
+    const l = Math.max(0, Math.min(laneCount-1, Math.floor(x / third)));
+    state.lane = l;
+  }
 
-  function spawn(dt) {
-    spawnAcc += dt * config.spawnRate;
-    while (spawnAcc >= 1 && objs.length < config.maxObjects) {
-      spawnAcc -= 1;
+  canvas.addEventListener("pointerdown", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    setLaneFromX(e.clientX - rect.left);
+  });
+  canvas.addEventListener("pointermove", (e) => {
+    if (e.buttons){
+      const rect = canvas.getBoundingClientRect();
+      setLaneFromX(e.clientX - rect.left);
+    }
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (!state.running) return;
+    if (e.key === "ArrowLeft") state.lane = Math.max(0, state.lane - 1);
+    if (e.key === "ArrowRight") state.lane = Math.min(laneCount-1, state.lane + 1);
+  });
+
+  function spawn(dt){
+    // spawn rate tuned for 50pt/50s
+    const spawnRate = 1.25; // items per second
+    state.spawnAcc += dt * spawnRate;
+
+    const w = canvas.clientWidth || window.innerWidth;
+    const h = canvas.clientHeight || (window.innerHeight - 56);
+
+    const laneW = w / laneCount;
+
+    while (state.spawnAcc >= 1){
+      state.spawnAcc -= 1;
 
       // slightly more stars than bananas
-      const type = Math.random() < 0.58 ? "star" : "banana";
-      const size = type === "star" ? 30 : 34;
+      const isStar = Math.random() < 0.62;
+      const type = isStar ? "star" : "banana";
+      const lane = Math.floor(Math.random() * laneCount);
 
-      objs.push({
+      state.items.push({
         type,
-        x: rand(40, W-40),
+        lane,
         y: -40,
-        r: size/2,
-        vy: rand(config.speedMin, config.speedMax)
+        speed: isStar ? rand(360, 520) : rand(380, 560),
+        size: isStar ? 34 : 38
       });
+
+      // keep list reasonable
+      if (state.items.length > 40) state.items.shift();
     }
   }
 
-  function collideCircleRect(cx, cy, r, rx, ry, rw, rh) {
-    const nx = clamp(cx, rx, rx+rw);
-    const ny = clamp(cy, ry, ry+rh);
-    const dx = cx - nx, dy = cy - ny;
-    return (dx*dx + dy*dy) <= (r*r);
-  }
+  function rand(a,b){ return a + Math.random()*(b-a); }
 
-  function update(dt) {
-    timeLeft -= dt;
-    if (timeLeft <= 0) {
-      timeLeft = 0;
-      timeTxt.textContent = "0";
-      end();
+  function update(dt){
+    state.timeLeft -= dt;
+    if (state.timeLeft <= 0){
+      state.timeLeft = 0;
+      topTimer.textContent = fmtTime(0);
+      finishGame();
       return;
     }
-    timeTxt.textContent = Math.ceil(timeLeft).toString();
+    topTimer.textContent = fmtTime(state.timeLeft);
 
-    // input -> velocity
-    let dir = 0;
-    if (keys.left) dir -= 1;
-    if (keys.right) dir += 1;
-    dir += touchDir;
-    dir = clamp(dir, -1, 1);
-
-    kart.vx = dir * kart.speed;
-    kart.x += kart.vx * dt;
-    kart.x = clamp(kart.x, 20 + kart.w/2, W - 20 - kart.w/2);
-
-    // spawn objects
     spawn(dt);
 
-    // move objects + collisions
-    for (let i = objs.length - 1; i >= 0; i--) {
-      const o = objs[i];
-      o.y += o.vy * dt;
+    const w = canvas.clientWidth || window.innerWidth;
+    const h = canvas.clientHeight || (window.innerHeight - 56);
 
-      const rx = kart.x - kart.w/2;
-      const ry = kart.y - kart.h/2;
+    const laneW = w / laneCount;
+    const playerY = h - 110; // avatar baseline
+    const hitYMin = playerY - 20;
+    const hitYMax = playerY + 60;
 
-      if (collideCircleRect(o.x, o.y, o.r, rx, ry, kart.w, kart.h)) {
-        if (o.type === "star") score += config.scoreStar;
-        else score += config.scoreBanana;
+    for (let i = state.items.length - 1; i >= 0; i--){
+      const it = state.items[i];
+      it.y += it.speed * dt;
 
-        scoreTxt.textContent = score;
-        objs.splice(i, 1);
-        continue;
+      // collision if same lane and near bottom
+      if (it.lane === state.lane && it.y >= hitYMin && it.y <= hitYMax){
+        if (it.type === "star"){
+          state.score += 5;
+        } else {
+          state.score -= 5;
+        }
+        topScore.textContent = String(state.score);
+        state.items.splice(i,1);
+
+        // win condition
+        if (state.score >= TARGET_SCORE){
+          finishGame();
+          return;
+        }
+      } else if (it.y > h + 60){
+        state.items.splice(i,1);
       }
-
-      if (o.y > H + 60) objs.splice(i, 1);
     }
   }
 
-  function roundRect(x,y,w,h,r,fill,stroke){
+  function draw(){
+    const w = canvas.clientWidth || window.innerWidth;
+    const h = canvas.clientHeight || (window.innerHeight - 56);
+
+    ctx.clearRect(0,0,w,h);
+
+    // lanes (3 rows/columns)
+    ctx.save();
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--laneBorder').trim() || "#e6e6e6";
+    ctx.lineWidth = 2;
+
+    for (let i=1;i<laneCount;i++){
+      const x = (w/laneCount)*i;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // items
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    for (const it of state.items){
+      const x = (w/laneCount) * it.lane + (w/laneCount)/2;
+      ctx.font = `${it.size}px system-ui, Apple Color Emoji, Segoe UI Emoji`;
+      ctx.fillText(it.type === "star" ? "⭐️" : "🍌", x, it.y);
+    }
+
+    // player avatar at bottom (instead of kart)
+    const laneCenterX = (w/laneCount) * state.lane + (w/laneCount)/2;
+    const avatarW = Math.min(160, (w/laneCount) * 0.78);
+    const avatarH = avatarW; // square-ish
+    const y = h - avatarH - 20;
+    const x = laneCenterX - avatarW/2;
+
+    // highlight current lane under avatar
+    ctx.save();
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = "#111";
+    ctx.fillRect((w/laneCount)*state.lane, 0, (w/laneCount), h);
+    ctx.restore();
+
+    // avatar frame
+    ctx.save();
+    ctx.fillStyle = "#f6f6f6";
+    roundRect(ctx, x, y, avatarW, avatarH, 18, true, false);
+    ctx.strokeStyle = "#eaeaea";
+    ctx.lineWidth = 2;
+    roundRect(ctx, x, y, avatarW, avatarH, 18, false, true);
+    ctx.restore();
+
+    if (state.avatarImg){
+      ctx.drawImage(state.avatarImg, x, y, avatarW, avatarH);
+    } else {
+      ctx.font = "20px system-ui";
+      ctx.fillStyle = "#555";
+      ctx.fillText("Avatar", laneCenterX, y + avatarH/2);
+    }
+
+    // small hint
+    ctx.save();
+    ctx.fillStyle = "#777";
+    ctx.font = "14px system-ui";
+    ctx.fillText("Tippen fir Spuer ze wiesselen • Pfeiltasten um PC", w/2, 18);
+    ctx.restore();
+  }
+
+  function roundRect(ctx, x, y, w, h, r, fill, stroke){
     const rr = Math.min(r, w/2, h/2);
     ctx.beginPath();
     ctx.moveTo(x+rr, y);
@@ -310,170 +582,138 @@
     if (stroke) ctx.stroke();
   }
 
-  function drawKart() {
-    const x = kart.x, y = kart.y;
-    ctx.save();
-    ctx.translate(x, y);
+  function loop(ts){
+    if (!state.running) return;
+    if (!state.lastTs) state.lastTs = ts;
+    const dt = Math.min(0.033, (ts - state.lastTs)/1000);
+    state.lastTs = ts;
 
-    // shadow
-    ctx.globalAlpha = 0.25;
-    ctx.beginPath();
-    ctx.ellipse(0, 18, 50, 14, 0, 0, Math.PI*2);
-    ctx.fillStyle = "#000";
-    ctx.fill();
-    ctx.globalAlpha = 1;
-
-    // body
-    ctx.fillStyle = "rgba(255,255,255,0.10)";
-    ctx.strokeStyle = "rgba(255,255,255,0.20)";
-    roundRect(-kart.w/2, -kart.h/2, kart.w, kart.h, 10, true, true);
-
-    // cockpit
-    ctx.fillStyle = "rgba(0,0,0,0.25)";
-    roundRect(-20, -16, 40, 22, 10, true, false);
-
-    // wheels
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
-    roundRect(-kart.w/2 - 6, -kart.h/2 + 6, 14, 18, 6, true, false);
-    roundRect(kart.w/2 - 8, -kart.h/2 + 6, 14, 18, 6, true, false);
-
-    // driver emoji
-    ctx.font = "28px system-ui, Apple Color Emoji, Segoe UI Emoji";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("🏎️", 0, -2);
-
-    ctx.restore();
-  }
-
-  function drawObj(o) {
-    ctx.save();
-    ctx.translate(o.x, o.y);
-    ctx.font = o.type === "star"
-      ? "30px system-ui, Apple Color Emoji, Segoe UI Emoji"
-      : "34px system-ui, Apple Color Emoji, Segoe UI Emoji";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(o.type === "star" ? "⭐" : "🍌", 0, 0);
-    ctx.restore();
-  }
-
-  function draw() {
-    ctx.clearRect(0,0,W,H);
-
-    // lanes
-    ctx.save();
-    ctx.globalAlpha = 0.22;
-    ctx.fillStyle = "#ffffff";
-    for (let i=1;i<6;i++){
-      const lx = (W/6)*i;
-      ctx.fillRect(lx-2, 0, 4, H);
-    }
-    ctx.restore();
-
-    // mini legend
-    ctx.save();
-    ctx.globalAlpha = 0.9;
-    ctx.fillStyle = "rgba(255,255,255,0.10)";
-    roundRect(16, 16, 260, 44, 14, true, false);
-    ctx.fillStyle = "rgba(255,255,255,0.92)";
-    ctx.font = "700 16px system-ui";
-    ctx.textBaseline = "middle";
-    ctx.fillText("⭐ +5   🍌 -5", 26, 38);
-    ctx.restore();
-
-    for (const o of objs) drawObj(o);
-    drawKart();
-
-    if (!running) {
-      ctx.save();
-      ctx.globalAlpha = 0.7;
-      ctx.fillStyle = "rgba(0,0,0,0.55)";
-      ctx.fillRect(0,0,W,H);
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = "rgba(255,255,255,0.95)";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.font = "800 30px system-ui";
-      ctx.fillText("Dréck op START", W/2, H/2 - 20);
-      ctx.font = "500 14px system-ui";
-      ctx.fillText("Sammel ⭐ a weich 🍌 aus", W/2, H/2 + 18);
-      ctx.restore();
-    }
-  }
-
-  function loop(t) {
-    if (!running) return;
-    const dt = Math.min(0.033, (t - lastT)/1000);
-    lastT = t;
     update(dt);
     draw();
-    if (running) requestAnimationFrame(loop);
+
+    if (state.running) requestAnimationFrame(loop);
   }
 
-  // ======= INPUT =======
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowLeft") keys.left = true;
-    if (e.key === "ArrowRight") keys.right = true;
-    if (e.key === " " && !running) start();
-  });
-  window.addEventListener("keyup", (e) => {
-    if (e.key === "ArrowLeft") keys.left = false;
-    if (e.key === "ArrowRight") keys.right = false;
-  });
+  async function gameStart(){
+    resizeCanvasToViewport();
+    resetGame();
+    state.avatarImg = await loadAvatar();
 
-  // Touch / mouse: left half = left, right half = right
-  function setTouchDirFromEvent(ev) {
-    const rect = canvas.getBoundingClientRect();
-    const x = ("touches" in ev) ? ev.touches[0].clientX : ev.clientX;
-    const cx = x - rect.left;
-    touchDir = (cx < rect.width/2) ? -1 : +1;
+    state.running = true;
+    state.lastTs = 0;
+    requestAnimationFrame(loop);
   }
-  function clearTouchDir(){ touchDir = 0; }
 
-  canvas.addEventListener("pointerdown", (e)=>{ setTouchDirFromEvent(e); });
-  canvas.addEventListener("pointermove", (e)=>{ if (e.buttons) setTouchDirFromEvent(e); });
-  canvas.addEventListener("pointerup", clearTouchDir);
-  canvas.addEventListener("pointercancel", clearTouchDir);
+  function finishGame(){
+    state.running = false;
 
-  // ======= BUTTONS =======
-  startBtn.addEventListener("click", start);
-  restartBtn.addEventListener("click", () => { reset(); start(); });
-
-  playAgainBtn.addEventListener("click", () => { reset(); start(); });
-  closeModalBtn.addEventListener("click", () => { overlay.style.display = "none"; });
-
-  // ======= CODE CHECK =======
-  function normalizeCode(s){ return (s || "").replace(/\s+/g,""); }
-
-  codeInput.addEventListener("input", () => {
-    const entered = normalizeCode(codeInput.value);
-    const target  = normalizeCode(SECRET_CODE);
-
-    if (!entered) {
-      codeFeedback.textContent = "";
-      revealBtn.style.display = "none";
-      return;
-    }
-
-    if (entered === target) {
-      codeFeedback.textContent = "✔️ Code richteg!";
-      codeFeedback.style.color = "#9dff9d";
-      revealBtn.style.display = "block";
+    // Set correct popup text per player
+    const digits = PLAYER_DIGITS[currentPlayer] || "00";
+    if (currentPlayer === "gilles"){
+      endText.textContent = `Super! Deng 2 Ziffere sinn ${digits}!`;
     } else {
-      codeFeedback.textContent = "❌ Code net richteg – probéier nach eng Kéier";
-      codeFeedback.style.color = "#ffb3b3";
-      revealBtn.style.display = "none";
+      endText.textContent = `Super! Deng 2 Ziffere sinn ${digits}!`;
     }
+
+    endOverlay.style.display = "flex";
+    endOverlay.setAttribute("aria-hidden","false");
+  }
+
+  toChestBtn.addEventListener("click", () => {
+    endOverlay.style.display = "none";
+    endOverlay.setAttribute("aria-hidden","true");
+    showScreen("chest");
+    initChest();
   });
 
-  // Open in SAME TAB
-  revealBtn.addEventListener("click", () => {
-    window.location.href = "https://www.battlekart.com/de/";
+  /* ===================== CHEST LOGIC ===================== */
+  const chestImg = document.getElementById("chestImg");
+  const chestVid = document.getElementById("chestVid");
+  const chestFeedback = document.getElementById("chestFeedback");
+  const digits = [document.getElementById("d1"),document.getElementById("d2"),document.getElementById("d3"),document.getElementById("d4")];
+
+  let chestOpened = false;
+
+  function initChest(){
+    chestOpened = false;
+    chestImg.style.display = "block";
+    chestVid.style.display = "none";
+    chestVid.pause();
+    chestVid.currentTime = 0;
+    chestFeedback.textContent = "";
+    digits.forEach((d,i)=>{ d.value=""; d.disabled=false; d.style.borderColor="#e6e6e6"; });
+    digits[0].focus();
+  }
+
+  function currentCode(){
+    return digits.map(d => (d.value||"").replace(/\D/g,"")).join("");
+  }
+
+  function lockDigits(){
+    digits.forEach(d => d.disabled = true);
+  }
+
+  function openChest(){
+    if (chestOpened) return;
+    chestOpened = true;
+
+    lockDigits();
+
+    // switch png -> mp4 immediately
+    chestImg.style.display = "none";
+    chestVid.style.display = "block";
+    chestVid.currentTime = 0;
+    chestVid.play().catch(()=>{ /* autoplay may be blocked; still shows video frame */ });
+
+    // after 4 seconds, show battlekart popup image
+    setTimeout(() => {
+      battleOverlay.style.display = "flex";
+      battleOverlay.setAttribute("aria-hidden","false");
+    }, 4000);
+  }
+
+  // input behavior (auto-advance, digits only)
+  digits.forEach((inp, idx) => {
+    inp.addEventListener("input", () => {
+      inp.value = (inp.value || "").replace(/\D/g,"").slice(0,1);
+
+      if (inp.value && idx < digits.length - 1){
+        digits[idx+1].focus();
+      }
+
+      const code = currentCode();
+      if (code.length === 4){
+        if (code === CHEST_CODE){
+          digits.forEach(d => d.style.borderColor = "#b8f2c2");
+          chestFeedback.textContent = "";
+          openChest();
+        } else {
+          digits.forEach(d => d.style.borderColor = "#ffb3b3");
+          chestFeedback.textContent = "❌ Code net richteg – probéier nach eng Kéier";
+          chestFeedback.style.color = "var(--danger)";
+          // keep editable so they can correct
+        }
+      } else {
+        digits.forEach(d => d.style.borderColor = "#e6e6e6");
+        chestFeedback.textContent = "";
+      }
+    });
+
+    inp.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace" && !inp.value && idx > 0){
+        digits[idx-1].focus();
+      }
+    });
   });
 
-  // Init
-  reset();
+  // close battle overlay by tap/click
+  battleOverlay.addEventListener("click", () => {
+    battleOverlay.style.display = "none";
+    battleOverlay.setAttribute("aria-hidden","true");
+  });
+
+  /* ===================== STARTUP ===================== */
+  // Start at instructions; everything else on demand.
 })();
 </script>
 </body>
